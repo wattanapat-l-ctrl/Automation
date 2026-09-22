@@ -1,0 +1,31 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import Nav from "@/components/Nav";
+
+export default async function ProtectedLayout({ children }: LayoutProps<"/">) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, email, full_name, role")
+    .eq("id", user.id)
+    .single();
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <Nav
+        name={profile?.full_name || user.email?.split("@")[0] || "User"}
+        role={profile?.role || "technician"}
+        email={user.email || ""}
+      />
+      <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+    </div>
+  );
+}
