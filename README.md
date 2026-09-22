@@ -101,6 +101,9 @@ AI (Claude / Codex / Copilot) was used throughout the assignment to assist with:
 
 All code was verified manually against the assignment rubric and tested end-to-end (login → every page) in a real browser against the production deployment.
 
+- **AI Usage Report:** [`AI_REPORT.md`](./AI_REPORT.md) (ภาษาไทย)
+- **Screenshots:** [`screenshots/`](./screenshots) — captured from the live Vercel deployment
+
 ## 📚 Assignment Rubric Coverage
 
 | Requirement | Where |
