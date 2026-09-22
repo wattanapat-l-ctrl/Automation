@@ -125,8 +125,8 @@ export default function Nav({
         </div>
       )}
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Link href="/dashboard" className="flex shrink-0 items-center gap-2.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-violet-600 text-white shadow-md shadow-sky-500/30">
               <Activity className="h-4 w-4" />
             </span>
@@ -135,7 +135,7 @@ export default function Nav({
             </span>
           </Link>
           <span
-            className={`hidden rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ring-inset sm:inline ${
+            className={`hidden shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ring-inset md:inline ${
               isAdmin
                 ? "bg-violet-500/15 text-violet-600 ring-violet-500/30 dark:text-violet-300"
                 : role === "viewer"
@@ -147,57 +147,10 @@ export default function Nav({
           </span>
         </div>
 
-        <nav className="flex items-center gap-1 overflow-x-auto">
-          {LINKS.map((link) => {
-            const active =
-              pathname === link.href || pathname.startsWith(link.href + "/");
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
-                  active
-                    ? "bg-gradient-to-r from-sky-500/15 to-violet-500/15 text-sky-700 ring-1 ring-inset ring-sky-500/20 dark:text-white dark:ring-white/10"
-                    : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
-                }`}
-              >
-                {ICONS[link.href]}
-                <span className="hidden md:inline">{link.label}</span>
-              </Link>
-            );
-          })}
-          {isAdmin && (
-            <Link
-              href="/audit"
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
-                pathname.startsWith("/audit")
-                  ? "bg-gradient-to-r from-sky-500/15 to-violet-500/15 text-sky-700 ring-1 ring-inset ring-sky-500/20 dark:text-white dark:ring-white/10"
-                  : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
-              }`}
-            >
-              {ICONS["/audit"]}
-              <span className="hidden md:inline">Audit Log</span>
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              href="/users"
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
-                pathname.startsWith("/users")
-                  ? "bg-gradient-to-r from-sky-500/15 to-violet-500/15 text-sky-700 ring-1 ring-inset ring-sky-500/20 dark:text-white dark:ring-white/10"
-                  : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
-              }`}
-            >
-              {ICONS["/users"]}
-              <span className="hidden md:inline">Users</span>
-            </Link>
-          )}
-        </nav>
-
         <div className="flex items-center gap-2">
           <Link
             href="/alarms"
-            className="relative inline-flex items-center rounded-xl border border-slate-300/80 bg-white/60 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="relative inline-flex shrink-0 items-center rounded-xl border border-slate-300/80 bg-white/60 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
             title="Open alarms notification"
           >
             <Bell className="h-4 w-4" />
@@ -210,7 +163,7 @@ export default function Nav({
 
           <button
             onClick={toggleTheme}
-            className="inline-flex items-center rounded-xl border border-slate-300/80 bg-white/60 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="inline-flex shrink-0 items-center rounded-xl border border-slate-300/80 bg-white/60 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
             title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -218,13 +171,13 @@ export default function Nav({
 
           <Link
             href="/account"
-            className="hidden items-center gap-2.5 rounded-xl px-2 py-1 transition hover:bg-slate-100/80 sm:flex dark:hover:bg-slate-800/60"
+            className="hidden shrink-0 items-center gap-2.5 rounded-xl px-2 py-1 transition hover:bg-slate-100/80 sm:flex dark:hover:bg-slate-800/60"
             title="My account"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-violet-600 text-xs font-bold text-white shadow-md shadow-sky-500/25">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-violet-600 text-xs font-bold text-white shadow-md shadow-sky-500/25">
               {initials || "U"}
             </span>
-            <div className="text-right">
+            <div className="hidden text-right lg:block">
               <p className="text-sm font-medium leading-tight text-slate-900 dark:text-white">
                 {name || "User"}
               </p>
@@ -234,13 +187,36 @@ export default function Nav({
           <button
             onClick={handleLogout}
             title="Log out"
-            className="flex items-center gap-1.5 rounded-xl border border-slate-300/80 bg-white/60 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-red-500/40 hover:bg-red-50 hover:text-red-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-red-950/40 dark:hover:text-red-300"
+            className="flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-300/80 bg-white/60 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-red-500/40 hover:bg-red-50 hover:text-red-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-red-950/40 dark:hover:text-red-300"
           >
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </div>
+
+      <nav className="border-t border-slate-200/70 dark:border-slate-800/70">
+        <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-2">
+          {[...LINKS, ...(isAdmin ? [{ href: "/audit", label: "Audit Log" }, { href: "/users", label: "Users" }] : []), { href: "/account", label: "Account" }].map((link) => {
+            const active =
+              pathname === link.href || pathname.startsWith(link.href + "/");
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`flex min-w-max items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
+                  active
+                    ? "bg-gradient-to-r from-sky-500/15 to-violet-500/15 text-sky-700 ring-1 ring-inset ring-sky-500/20 dark:text-white dark:ring-white/10"
+                    : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
+                }`}
+              >
+                {ICONS[link.href]}
+                <span>{link.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </header>
   );
 }
