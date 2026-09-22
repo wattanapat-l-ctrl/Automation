@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   Activity,
   AlertTriangle,
@@ -13,18 +14,6 @@ import {
   Sparkles,
   Wrench,
 } from "lucide-react";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/Badge";
 import { btnPrimary, btnSecondary } from "@/components/ui/Field";
@@ -36,6 +25,32 @@ import {
   seedDemoData,
 } from "@/lib/demo";
 import type { Machine, Alarm, MaintenanceRecord } from "@/lib/supabase/types";
+
+const AlarmTrendChart = dynamic(
+  () =>
+    import("@/components/dashboard/AlarmTrendChart").then(
+      (m) => m.AlarmTrendChart
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[240px] animate-pulse rounded-xl bg-slate-950/5 dark:bg-white/5" />
+    ),
+  }
+);
+
+const MachineStatusChart = dynamic(
+  () =>
+    import("@/components/dashboard/MachineStatusChart").then(
+      (m) => m.MachineStatusChart
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[220px] animate-pulse rounded-xl bg-slate-950/5 dark:bg-white/5" />
+    ),
+  }
+);
 
 function StatCard({
   label,
@@ -131,13 +146,6 @@ type ActivityItem = {
   status: string;
 };
 
-const tooltipStyle = {
-  backgroundColor: "#1e293b",
-  border: "1px solid #334155",
-  borderRadius: "0.5rem",
-  color: "#f1f5f9",
-};
-
 export default function DashboardPage() {
   const { loading: authLoading, isAdmin } = useAuth();
   const supabase = createClient();
@@ -177,6 +185,10 @@ export default function DashboardPage() {
       1
     ).toISOString();
 
+    const since14d = new Date(
+      Date.now() - 14 * 86400000
+    ).toISOString();
+
     return Promise.all([
       supabase
         .from("machines")
@@ -203,7 +215,10 @@ export default function DashboardPage() {
         .gte("maintenance_date", firstOfMonth),
       supabase
         .from("alarms")
-        .select("alarmed_at"),
+        .select("alarmed_at")
+        .gte("alarmed_at", since14d)
+        .order("alarmed_at", { ascending: false })
+        .limit(5000),
       supabase
         .from("alarms")
         .select(
@@ -538,29 +553,7 @@ export default function DashboardPage() {
           <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
             Number of recorded alarms per day
           </p>
-          <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={trend}>
-              <defs>
-                <linearGradient id="alarmGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ef4444" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} />
-              <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={11} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Area
-                type="monotone"
-                dataKey="count"
-                name="Alarms"
-                stroke="#ef4444"
-                strokeWidth={2}
-                fill="url(#alarmGrad)"
-                dot={{ r: 3, fill: "#ef4444", strokeWidth: 0 }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <AlarmTrendChart data={trend} />
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
@@ -620,16 +613,7 @@ export default function DashboardPage() {
             </span>
             Machine Status Overview
           </h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={machineChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
-              <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={12} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="count" fill="#0ea5e9" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <MachineStatusChart data={machineChartData} />
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
