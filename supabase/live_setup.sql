@@ -23,7 +23,7 @@ set search_path = public
 as $$
 begin
   insert into public.profiles (id, email, full_name)
-  values (new.id, new.email, coalesce(new.raw_user_meta_data->>'full_name', ''))
+  values (new.id, new.email, coalesce(nullif(trim(coalesce(new.raw_user_meta_data->>'full_name', '')), ''), new.email))
   on conflict (id) do nothing;
   return new;
 end;
@@ -308,7 +308,7 @@ declare
   v_old jsonb;
   v_new jsonb;
 begin
-  select coalesce(p.full_name, p.email) into v_name
+  select coalesce(nullif(trim(coalesce(p.full_name, '')), ''), p.email) into v_name
   from public.profiles p where p.id = v_uid;
 
   if tg_op = 'DELETE' then
