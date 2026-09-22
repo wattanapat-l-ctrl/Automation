@@ -28,6 +28,8 @@ A web application for **Programming in Automation Systems** course assignment. B
 - **Self-Service Sign Up** — `/signup` page (name, email, password) with client-side validation. With email confirmation disabled the user is signed in immediately.
 - **Simulation Lab** (bonus) — admins can simulate live machine events (short alarm / long alarm / maintenance / status cycle) that stream to every connected dashboard in real time.
 - **Audit Log** (bonus) — automatic trail of every INSERT / UPDATE / DELETE via DB triggers; readable by admins on `/audit`.
+- **User Management** (admin) — `/users` lists every account; admins can rename users and change roles (`admin` / `technician` / `viewer`) inline. A role/name change is itself recorded in the audit log.
+- **My Account** — `/account` lets any user edit their display name and change their password (via Supabase Auth `updateUser`).
 - **Live Realtime** — dashboard, alarms and machines update instantly via Supabase Realtime channels.
 - **CSV Export** — every list page can download the current filtered data as `.csv`.
 - **Dark Mode** — class-based light/dark theme toggle.
@@ -109,6 +111,8 @@ All code was verified manually against the assignment rubric and tested end-to-e
 | Requirement | Where |
 |---|---|
 | Auth + roles (admin / technician / viewer) | `src/lib/supabase/`, `profiles` table, login + signup pages |
+| User / role management (admin) | `/users` (rename users, change roles) |
+| Account settings (self) | `/account` (edit name, change password) |
 | Machine CRUD | `/machines` (+ add / edit / delete modal) |
 | Alarm CRUD + status change | `/alarms` |
 | Maintenance CRUD | `/maintenance` |
