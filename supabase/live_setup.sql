@@ -357,7 +357,7 @@ values
 on conflict (machine_id) do nothing;
 
 insert into public.alarms (machine_id, alarm_code, description, cause, status, alarmed_at)
-select m.id, x.code, x.desc, x.cause, x.status, now() - x.hours * interval '1 hour'
+select m.id, x.alarm_code, x.description, x.cause, x.status, now() - (x.hours::int) * interval '1 hour'
 from public.machines m
 cross join (values
   ('MC-004', 'E-STOP', 'Emergency stop activated', 'Operator pressed e-stop during jamming', 'In Progress', 2),
@@ -366,17 +366,17 @@ cross join (values
   ('MC-001', 'E-115', 'Servo axis over-travel', 'Limit switch out of alignment', 'Closed', 72),
   ('MC-002', 'E-102', 'Injection pressure out of range', 'Nozzle clogged', 'Open', 30),
   ('MC-003', 'E-501', 'Robot gripper sensor fault', 'Sensor misaligned after crash', 'Open', 50)
-) as x(code, desc, cause, status, hours)
-where m.machine_id = x.code;
+) as x(machine_id, alarm_code, description, cause, status, hours)
+where m.machine_id = x.machine_id;
 
 insert into public.maintenance_records
   (machine_id, maintenance_type, problem, action_taken, technician, status, maintenance_date)
-select m.id, x.t, x.problem, x.action, x.tech, x.status, current_date - x.days
+select m.id, x.type, x.problem, x.action, x.tech, x.status, current_date - x.days::int
 from public.machines m
 cross join (values
   ('MC-005', 'Preventive', 'Air pressure drops below threshold', 'Replaced air filter and checked hoses', 'Kittisak', 'Completed', 3),
   ('MC-001', 'Preventive', 'Scheduled lubrication check', 'Refilled spindle oil, no issues found', 'Somchai', 'Completed', 6),
   ('MC-004', 'Corrective', 'Belt slipping under load', 'Tensioned belt, waiting on spare rollers', 'Prasert', 'Waiting Part', 1),
   ('MC-002', 'Corrective', 'Screw barrel wear suspected', 'Planned replacement, technicians assigned', 'Kittisak', 'In Progress', 0)
-) as x(t, problem, action, tech, status, days)
-where m.machine_id = x.t;
+) as x(machine_id, type, problem, action, tech, status, days)
+where m.machine_id = x.machine_id;
