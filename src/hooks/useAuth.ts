@@ -14,6 +14,31 @@ export function useAuth() {
     const supabase = createClient();
     let mounted = true;
 
+    async function ensureProfile(user: User) {
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (data) return data;
+
+      const fullName =
+        typeof user.user_metadata?.full_name === "string"
+          ? user.user_metadata.full_name
+          : undefined;
+      await supabase
+        .from("profiles")
+        .insert({ id: user.id, email: user.email, full_name: fullName });
+
+      const { data: retry } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      return retry;
+    }
+
     async function load() {
       const {
         data: { user },
@@ -22,12 +47,8 @@ export function useAuth() {
       setUser(user);
 
       if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-        if (mounted) setProfile(data);
+        const profile = await ensureProfile(user);
+        if (mounted) setProfile(profile);
       }
       if (mounted) setLoading(false);
     }
@@ -39,14 +60,9 @@ export function useAuth() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single()
-          .then(({ data }) => {
-            if (mounted) setProfile(data);
-          });
+        ensureProfile(session.user).then((profile) => {
+          if (mounted) setProfile(profile);
+        });
       } else {
         setProfile(null);
       }
