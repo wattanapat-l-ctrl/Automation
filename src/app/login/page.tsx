@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Activity, AlertCircle, LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -98,6 +99,16 @@ function LoginForm() {
           {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
+
+      <p className="mt-5 text-center text-sm text-slate-400">
+        No account yet?{" "}
+        <Link
+          href="/signup"
+          className="font-medium text-sky-400 hover:text-sky-300"
+        >
+          Create one
+        </Link>
+      </p>
     </div>
   );
 }

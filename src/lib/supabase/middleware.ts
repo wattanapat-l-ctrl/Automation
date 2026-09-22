@@ -35,14 +35,14 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
-  if (!user && !path.startsWith("/login")) {
+  if (!user && !path.startsWith("/login") && !path.startsWith("/signup")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirected", "true");
     return NextResponse.redirect(url);
   }
 
-  if (user && path.startsWith("/login")) {
+  if (user && (path.startsWith("/login") || path.startsWith("/signup"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
