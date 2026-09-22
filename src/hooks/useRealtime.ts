@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+let channelSeq = 0;
+
 export function useRealtime(
   tables: string[],
   pollMs = 7000
@@ -20,6 +22,7 @@ export function useRealtime(
     const supabase = createClient();
     let mounted = true;
     const currentTables = tablesRef.current;
+    const instanceId = ++channelSeq;
 
     const timer = setInterval(() => {
       if (mounted) setTick((t) => t + 1);
@@ -27,7 +30,7 @@ export function useRealtime(
 
     const channels = currentTables.map((table) =>
       supabase
-        .channel(`live-${table}`)
+        .channel(`live-${table}-${instanceId}`)
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table },
