@@ -1,23 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import {
   Activity,
-  BellRingIcon,
+  Bell,
+  BellRing,
   LayoutDashboard,
   LogOut,
+  Moon,
   Settings,
+  ShieldCheck,
+  Sun,
   Wrench,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRealtime } from "@/hooks/useRealtime";
 
 const ICONS: Record<string, React.ReactNode> = {
   "/dashboard": <LayoutDashboard className="h-4 w-4" />,
   "/machines": <Settings className="h-4 w-4" />,
-  "/alarms": <BellRingIcon className="h-4 w-4" />,
+  "/alarms": <BellRing className="h-4 w-4" />,
   "/maintenance": <Wrench className="h-4 w-4" />,
+  "/audit": <ShieldCheck className="h-4 w-4" />,
 };
 
 const LINKS = [
@@ -38,6 +44,45 @@ export default function Nav({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const supabaseClient = createClient();
+  const isAdmin = role === "admin";
+  const { tick } = useRealtime(["alarms"]);
+
+  const [openCount, setOpenCount] = useState(0);
+  const [theme, setTheme] = useState<"dark" | "light">(() =>
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light"
+  );
+  const [toast, setToast] = useState<string | null>(null);
+  const prevCount = useRef<number | null>(null);
+  const toastTimer = useRef(0);
+
+  useEffect(() => {
+    let mounted = true;
+    async function refresh() {
+      const { count } = await supabaseClient
+        .from("alarms")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["Open", "In Progress"]);
+      if (!mounted) return;
+      setOpenCount(count ?? 0);
+      if (prevCount.current !== null && (count ?? 0) > prevCount.current) {
+        setToast(
+          `⚠ ${(count ?? 0) - prevCount.current} new alarm${(count ?? 0) - prevCount.current > 1 ? "s" : ""} detected`
+        );
+        window.clearTimeout(toastTimer.current);
+        toastTimer.current = window.setTimeout(() => setToast(null), 5000);
+      }
+      prevCount.current = count ?? 0;
+    }
+    void refresh();
+    return () => {
+      mounted = false;
+      window.clearTimeout(toastTimer.current);
+    };
+  }, [supabaseClient, tick]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -46,17 +91,46 @@ export default function Nav({
     router.refresh();
   }
 
+  function toggleTheme() {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    try {
+      localStorage.setItem("theme", next);
+    } catch {
+      /* ignore */
+    }
+  }
+
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+      {toast && (
+        <div className="absolute left-1/2 top-full z-30 -translate-x-1/2 rounded-xl border border-red-500/30 bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-xl">
+          {toast}
+        </div>
+      )}
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/dashboard" className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/20 ring-1 ring-sky-400/30">
-            <Activity className="h-4 w-4 text-sky-400" />
+        <div className="flex items-center gap-2.5">
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/20 ring-1 ring-sky-400/30">
+              <Activity className="h-4 w-4 text-sky-500" />
+            </span>
+            <span className="hidden text-sm font-semibold text-slate-900 sm:block dark:text-white">
+              Alarm &amp; Maintenance
+            </span>
+          </Link>
+          <span
+            className={`hidden rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ring-inset sm:inline ${
+              isAdmin
+                ? "bg-violet-500/15 text-violet-600 ring-violet-500/30 dark:text-violet-300"
+                : role === "viewer"
+                  ? "bg-emerald-500/15 text-emerald-600 ring-emerald-500/30 dark:text-emerald-300"
+                  : "bg-sky-500/15 text-sky-600 ring-sky-500/30 dark:text-sky-300"
+            }`}
+          >
+            {role}
           </span>
-          <span className="hidden text-sm font-semibold text-white sm:block">
-            Alarm &amp; Maintenance
-          </span>
-        </Link>
+        </div>
 
         <nav className="flex items-center gap-1 overflow-x-auto">
           {LINKS.map((link) => {
@@ -68,8 +142,8 @@ export default function Nav({
                 href={link.href}
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
                   active
-                    ? "bg-slate-800 text-white"
-                    : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+                    ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
                 }`}
               >
                 {ICONS[link.href]}
@@ -77,30 +151,53 @@ export default function Nav({
               </Link>
             );
           })}
+          {isAdmin && (
+            <Link
+              href="/audit"
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                pathname.startsWith("/audit")
+                  ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
+                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
+              }`}
+            >
+              {ICONS["/audit"]}
+              <span className="hidden md:inline">Audit Log</span>
+            </Link>
+          )}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Link
+            href="/alarms"
+            className="relative inline-flex items-center rounded-lg border border-slate-300 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+            title="Open alarms notification"
+          >
+            <Bell className="h-4 w-4" />
+            {openCount > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+                {openCount > 99 ? "99+" : openCount}
+              </span>
+            )}
+          </Link>
+
+          <button
+            onClick={toggleTheme}
+            className="inline-flex items-center rounded-lg border border-slate-300 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+
           <div className="hidden text-right sm:block">
-            <p className="text-sm font-medium text-white">{name || "User"}</p>
-            <p className="text-xs text-slate-400">
-              <span
-                className={`inline-block rounded px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide ${
-                  role === "admin"
-                    ? "bg-violet-500/20 text-violet-300"
-                    : role === "viewer"
-                      ? "bg-emerald-500/20 text-emerald-300"
-                      : "bg-sky-500/20 text-sky-300"
-                }`}
-              >
-                {role}
-              </span>{" "}
-              {email}
+            <p className="text-sm font-medium text-slate-900 dark:text-white">
+              {name || "User"}
             </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{email}</p>
           </div>
           <button
             onClick={handleLogout}
             title="Log out"
-            className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-red-500/40 hover:text-red-300"
+            className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-red-500/40 hover:text-red-500 dark:border-slate-700 dark:text-slate-300 dark:hover:text-red-300"
           >
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">Logout</span>

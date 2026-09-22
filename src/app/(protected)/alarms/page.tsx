@@ -1,12 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, RefreshCcw, Search, Pencil, Trash2 } from "lucide-react";
+import {
+  Plus,
+  RefreshCcw,
+  Search,
+  Pencil,
+  Trash2,
+  CheckCircle,
+  RotateCcw,
+  Download,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { Field, inputClass, btnPrimary, btnSecondary, btnDanger } from "@/components/ui/Field";
 import { useAuth } from "@/hooks/useAuth";
+import { useRealtime } from "@/hooks/useRealtime";
+import { exportCsv } from "@/lib/csv";
 import type { Alarm, Machine } from "@/lib/supabase/types";
 import { ALARM_STATUSES } from "@/lib/supabase/types";
 
@@ -28,9 +39,26 @@ const EMPTY_FORM: FormState = {
   alarmed_at: "",
 };
 
+function LiveChip({ live }: { live: boolean }) {
+  return (
+    <span className="flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+      <span className="relative flex h-2 w-2">
+        <span
+          className={`absolute inline-flex h-full w-full rounded-full bg-emerald-400 ${live ? "animate-ping opacity-60" : "opacity-20"}`}
+        />
+        <span
+          className={`relative inline-flex h-2 w-2 rounded-full ${live ? "bg-emerald-500" : "bg-slate-400"}`}
+        />
+      </span>
+      {live ? "LIVE" : "Live"}
+    </span>
+  );
+}
+
 export default function AlarmsPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, role } = useAuth();
   const supabase = createClient();
+  const { tick, live } = useRealtime(["alarms", "machines"]);
 
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [machines, setMachines] = useState<Machine[]>([]);
@@ -39,6 +67,8 @@ export default function AlarmsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [machineFilter, setMachineFilter] = useState("All");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Alarm | null>(null);
@@ -65,7 +95,7 @@ export default function AlarmsPage() {
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, tick]);
 
   const filtered = alarms.filter((a) => {
     const machine = a.machines as unknown as { machine_id?: string; machine_name?: string } | null;
@@ -77,8 +107,17 @@ export default function AlarmsPage() {
       a.description.toLowerCase().includes(q);
     const matchesStatus = statusFilter === "All" || a.status === statusFilter;
     const matchesMachine = machineFilter === "All" || a.machine_id === machineFilter;
-    return matchesSearch && matchesStatus && matchesMachine;
+    const matchesFrom = !dateFrom || a.alarmed_at >= dateFrom + "T00:00:00";
+    const matchesTo = !dateTo || a.alarmed_at <= dateTo + "T23:59:59";
+    return matchesSearch && matchesStatus && matchesMachine && matchesFrom && matchesTo;
   });
+
+  const summary = {
+    Open: alarms.filter((a) => a.status === "Open").length,
+    "In Progress": alarms.filter((a) => a.status === "In Progress").length,
+    Closed: alarms.filter((a) => a.status === "Closed").length,
+  };
+  const totalSummary = Math.max(alarms.length, 1);
 
   function openCreate() {
     setEditing(null);
@@ -156,7 +195,8 @@ export default function AlarmsPage() {
 
   async function handleStatusChange(alarm: Alarm, status: (typeof ALARM_STATUSES)[number]) {
     const { error } = await supabase.from("alarms").update({ status }).eq("id", alarm.id);
-    if (!error) load();
+    if (error) window.alert(`Failed to update status: ${error.message}`);
+    else load();
   }
 
   async function handleDelete() {
@@ -172,6 +212,26 @@ export default function AlarmsPage() {
     }
   }
 
+  function handleExport() {
+    exportCsv(
+      `alarms-${new Date().toISOString().slice(0, 10)}.csv`,
+      ["Machine ID", "Alarm Code", "Description", "Cause", "Date / Time", "Status"],
+      filtered.map((a) => {
+        const machine = a.machines as unknown as { machine_id?: string } | null;
+        return [
+          machine?.machine_id ?? "?",
+          a.alarm_code,
+          a.description,
+          a.cause ?? "",
+          new Date(a.alarmed_at).toLocaleString("en-GB"),
+          a.status,
+        ];
+      })
+    );
+  }
+
+  const canUpdateStatus = isAdmin || role === "technician";
+
   if (loading) {
     return <div className="flex h-64 items-center justify-center text-slate-400">Loading alarms…</div>;
   }
@@ -186,8 +246,13 @@ export default function AlarmsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <LiveChip live={live} />
           <button onClick={load} className={btnSecondary} title="Refresh">
             <RefreshCcw className="h-4 w-4" />
+          </button>
+          <button onClick={handleExport} className={btnSecondary} title="Export CSV">
+            <Download className="h-4 w-4" />
+            CSV
           </button>
           {isAdmin && (
             <button onClick={openCreate} className={btnPrimary}>
@@ -198,7 +263,36 @@ export default function AlarmsPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="grid grid-cols-3 gap-3">
+        {(["Open", "In Progress", "Closed"] as const).map((s) => (
+          <div
+            key={s}
+            className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+          >
+            <div className="flex items-center justify-between">
+              <Badge value={s} />
+              <span className="text-xl font-bold text-slate-900 dark:text-white">{summary[s]}</span>
+            </div>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+              <div
+                className={`h-full rounded-full ${
+                  s === "Open"
+                    ? "bg-red-500"
+                    : s === "In Progress"
+                      ? "bg-amber-500"
+                      : "bg-emerald-500"
+                }`}
+                style={{ width: `${(summary[s] / totalSummary) * 100}%` }}
+              />
+            </div>
+            <p className="mt-1 text-right text-[11px] text-slate-400">
+              {Math.round((summary[s] / totalSummary) * 100)}%
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3">
         <div className="relative w-full sm:w-72">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -220,6 +314,14 @@ export default function AlarmsPage() {
             <option key={m.id} value={m.id}>{m.machine_id}</option>
           ))}
         </select>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-slate-500 dark:text-slate-400">From</label>
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className={`${inputClass} w-auto`} />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-slate-500 dark:text-slate-400">To</label>
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={`${inputClass} w-auto`} />
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
@@ -261,16 +363,31 @@ export default function AlarmsPage() {
                         {new Date(a.alarmed_at).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </td>
                       <td className="px-4 py-3.5">
-                        {isAdmin ? (
-                          <select
-                            value={a.status}
-                            onChange={(e) => handleStatusChange(a, e.target.value as (typeof ALARM_STATUSES)[number])}
-                            className={`${inputClass} w-auto px-2.5 py-1.5 text-xs`}
-                          >
-                            {ALARM_STATUSES.map((s) => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
+                        {canUpdateStatus ? (
+                          <div className="flex items-center gap-2">
+                            {a.status === "Closed" ? (
+                              <button
+                                onClick={() => handleStatusChange(a, "Open")}
+                                className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-sky-600 dark:hover:bg-slate-800"
+                                title="Reopen"
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleStatusChange(a, "Closed")}
+                                className={`rounded-lg p-1.5 transition ${
+                                  a.status === "In Progress"
+                                    ? "text-amber-500 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950"
+                                    : "text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                                }`}
+                                title="Mark as resolved (Closed)"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </button>
+                            )}
+                            <Badge value={a.status} />
+                          </div>
                         ) : (
                           <Badge value={a.status} />
                         )}

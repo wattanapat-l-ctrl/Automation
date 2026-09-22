@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, RefreshCcw, Search, Pencil, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Plus, RefreshCcw, Search, Pencil, Trash2, Download, History } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { Field, inputClass, btnPrimary, btnSecondary, btnDanger } from "@/components/ui/Field";
 import { useAuth } from "@/hooks/useAuth";
+import { exportCsv } from "@/lib/csv";
 import type { Machine } from "@/lib/supabase/types";
 import { MACHINE_STATUSES } from "@/lib/supabase/types";
 
@@ -165,6 +167,30 @@ export default function MachinesPage() {
     }
   }
 
+  async function handleQuickStatus(m: Machine, status: (typeof MACHINE_STATUSES)[number]) {
+    const { error } = await supabase.from("machines").update({ status }).eq("id", m.id);
+    if (error) {
+      window.alert(`Failed to update status: ${error.message}`);
+    } else {
+      load();
+    }
+  }
+
+  function handleExport() {
+    exportCsv(
+      `machines-${new Date().toISOString().slice(0, 10)}.csv`,
+      ["Machine ID", "Name", "Type", "Location", "Status", "Created"],
+      filtered.map((m) => [
+        m.machine_id,
+        m.machine_name,
+        m.machine_type ?? "",
+        m.location ?? "",
+        m.status,
+        new Date(m.created_at).toLocaleString("en-GB"),
+      ])
+    );
+  }
+
   if (loading) {
     return <div className="flex h-64 items-center justify-center text-slate-400">Loading machines…</div>;
   }
@@ -181,6 +207,10 @@ export default function MachinesPage() {
         <div className="flex items-center gap-2">
           <button onClick={load} className={btnSecondary} title="Refresh">
             <RefreshCcw className="h-4 w-4" />
+          </button>
+          <button onClick={handleExport} className={btnSecondary} title="Export CSV">
+            <Download className="h-4 w-4" />
+            CSV
           </button>
           {isAdmin && (
             <button onClick={openCreate} className={btnPrimary}>
@@ -225,13 +255,14 @@ export default function MachinesPage() {
                 <th className="px-4 py-3">Type</th>
                 <th className="px-4 py-3">Location</th>
                 <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3 text-right">History</th>
                 {isAdmin && <th className="px-4 py-3 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 6 : 5} className="px-4 py-14 text-center text-slate-400">
+                  <td colSpan={isAdmin ? 7 : 6} className="px-4 py-14 text-center text-slate-400">
                     No machines found.
                   </td>
                 </tr>
@@ -250,7 +281,30 @@ export default function MachinesPage() {
                     <td className="px-4 py-3.5 text-slate-600 dark:text-slate-300">{m.machine_type}</td>
                     <td className="px-4 py-3.5 text-slate-600 dark:text-slate-300">{m.location}</td>
                     <td className="px-4 py-3.5">
-                      <Badge value={m.status} />
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge value={m.status} />
+                        {isAdmin &&
+                          MACHINE_STATUSES.filter((s) => s !== m.status).map((s) => (
+                            <button
+                              key={s}
+                              onClick={() => handleQuickStatus(m, s)}
+                              title={`Set status to ${s}`}
+                              className="rounded-md border border-slate-300 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-sky-400 dark:hover:text-sky-400"
+                            >
+                              {s}
+                            </button>
+                          ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5 text-right">
+                      <Link
+                        href={`/machines/${m.id}`}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-sky-600 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-sky-400"
+                        title="View machine history"
+                      >
+                        <History className="h-3.5 w-3.5" />
+                        View
+                      </Link>
                     </td>
                     {isAdmin && (
                       <td className="px-4 py-3.5">

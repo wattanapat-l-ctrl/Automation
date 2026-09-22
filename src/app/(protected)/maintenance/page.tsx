@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, RefreshCcw, Search, Pencil, Trash2 } from "lucide-react";
+import { Plus, RefreshCcw, Search, Pencil, Trash2, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { Field, inputClass, btnPrimary, btnSecondary, btnDanger } from "@/components/ui/Field";
 import { useAuth } from "@/hooks/useAuth";
+import { useRealtime } from "@/hooks/useRealtime";
+import { exportCsv } from "@/lib/csv";
 import type { MaintenanceRecord, Machine } from "@/lib/supabase/types";
 import { MAINTENANCE_STATUSES } from "@/lib/supabase/types";
 
@@ -33,6 +35,7 @@ const EMPTY_FORM: FormState = {
 export default function MaintenancePage() {
   const { isAdmin, profile } = useAuth();
   const supabase = createClient();
+  const { tick } = useRealtime(["maintenance_records", "machines"]);
 
   const [records, setRecords] = useState<MaintenanceRecord[]>([]);
   const [machines, setMachines] = useState<Machine[]>([]);
@@ -68,7 +71,7 @@ export default function MaintenancePage() {
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, tick]);
 
   const filtered = records.filter((r) => {
     const machine = r.machines as unknown as { machine_id?: string; machine_name?: string } | null;
@@ -172,6 +175,25 @@ export default function MaintenancePage() {
     }
   }
 
+  function handleExport() {
+    exportCsv(
+      `maintenance-${new Date().toISOString().slice(0, 10)}.csv`,
+      ["Machine ID", "Type", "Problem", "Action Taken", "Technician", "Date", "Status"],
+      filtered.map((r) => {
+        const machine = r.machines as unknown as { machine_id?: string } | null;
+        return [
+          machine?.machine_id ?? "?",
+          r.maintenance_type,
+          r.problem,
+          r.action_taken ?? "",
+          r.technician ?? "",
+          r.maintenance_date,
+          r.status,
+        ];
+      })
+    );
+  }
+
   if (loading) {
     return <div className="flex h-64 items-center justify-center text-slate-400">Loading maintenance records…</div>;
   }
@@ -188,6 +210,10 @@ export default function MaintenancePage() {
         <div className="flex items-center gap-2">
           <button onClick={load} className={btnSecondary} title="Refresh">
             <RefreshCcw className="h-4 w-4" />
+          </button>
+          <button onClick={handleExport} className={btnSecondary} title="Export CSV">
+            <Download className="h-4 w-4" />
+            CSV
           </button>
           {isAdmin && (
             <button onClick={openCreate} className={btnPrimary}>
