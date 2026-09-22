@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Alarm & Maintenance Management System
 -- Supabase Database Schema
 -- Run this script in: Supabase Dashboard -> SQL Editor
@@ -114,10 +114,12 @@ alter table public.maintenance_records enable row level security;
 
 -- PROFILES
 -- users can read anyone's profile (needed to resolve roles/names)
+drop policy if exists "profiles_select_authenticated" on public.profiles;
 create policy "profiles_select_authenticated" on public.profiles
   for select to authenticated using (true);
 
 -- admin can update any profile (promote/demote roles, edit names)
+drop policy if exists "profiles_admin_update" on public.profiles;
 create policy "profiles_admin_update" on public.profiles
   for update to authenticated
   using (exists (
@@ -126,6 +128,7 @@ create policy "profiles_admin_update" on public.profiles
   ));
 
 -- a user can update their own profile name
+drop policy if exists "profiles_self_update" on public.profiles;
 create policy "profiles_self_update" on public.profiles
   for update to authenticated
   using (auth.uid() = id)
@@ -135,10 +138,12 @@ create policy "profiles_self_update" on public.profiles
 
 -- MACHINES
 -- everyone who is signed in can view machines
+drop policy if exists "machines_select_authenticated" on public.machines;
 create policy "machines_select_authenticated" on public.machines
   for select to authenticated using (true);
 
 -- admins manage machines (insert/update/delete)
+drop policy if exists "machines_admin_insert" on public.machines;
 create policy "machines_admin_insert" on public.machines
   for insert to authenticated
   with check (exists (
@@ -146,6 +151,7 @@ create policy "machines_admin_insert" on public.machines
     where p.id = auth.uid() and p.role = 'admin'
   ));
 
+drop policy if exists "machines_admin_update" on public.machines;
 create policy "machines_admin_update" on public.machines
   for update to authenticated
   using (exists (
@@ -153,6 +159,7 @@ create policy "machines_admin_update" on public.machines
     where p.id = auth.uid() and p.role = 'admin'
   ));
 
+drop policy if exists "machines_admin_delete" on public.machines;
 create policy "machines_admin_delete" on public.machines
   for delete to authenticated
   using (exists (
@@ -162,10 +169,12 @@ create policy "machines_admin_delete" on public.machines
 
 -- ALARMS
 -- everyone signed in can view alarms
+drop policy if exists "alarms_select_authenticated" on public.alarms;
 create policy "alarms_select_authenticated" on public.alarms
   for select to authenticated using (true);
 
 -- admins manage alarms (full control)
+drop policy if exists "alarms_admin_insert" on public.alarms;
 create policy "alarms_admin_insert" on public.alarms
   for insert to authenticated
   with check (exists (
@@ -173,6 +182,7 @@ create policy "alarms_admin_insert" on public.alarms
     where p.id = auth.uid() and p.role = 'admin'
   ));
 
+drop policy if exists "alarms_admin_update" on public.alarms;
 create policy "alarms_admin_update" on public.alarms
   for update to authenticated
   using (exists (
@@ -180,6 +190,7 @@ create policy "alarms_admin_update" on public.alarms
     where p.id = auth.uid() and p.role = 'admin'
   ));
 
+drop policy if exists "alarms_admin_delete" on public.alarms;
 create policy "alarms_admin_delete" on public.alarms
   for delete to authenticated
   using (exists (
@@ -187,28 +198,62 @@ create policy "alarms_admin_delete" on public.alarms
     where p.id = auth.uid() and p.role = 'admin'
   ));
 
--- technicians may only change the STATUS of an alarm (every other field must stay identical)
+-- technicians may only change the STATUS of an alarm
+-- (column locking is enforced by the alarms_tech_status_only trigger below)
+drop policy if exists "alarms_technician_update_status" on public.alarms;
 create policy "alarms_technician_update_status" on public.alarms
   for update to authenticated
   using (exists (
     select 1 from public.profiles p
     where p.id = auth.uid() and p.role in ('admin', 'technician')
   ))
-  with check (
-    old.machine_id = new.machine_id and
-    old.alarm_code = new.alarm_code and
-    old.description = new.description and
-    old.cause is not distinct from new.cause and
-    old.alarmed_at = new.alarmed_at and
-    new.status in ('Open', 'In Progress', 'Closed')
-  );
+  with check (new.status in ('Open', 'In Progress', 'Closed'));
+
+-- Hard rule: a technician who is NOT an admin may only edit the status column.
+create or replace function public.prevent_tech_edit_alarm()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_role text;
+begin
+  select p.role into v_role
+  from public.profiles p
+  where p.id = auth.uid();
+
+  if v_role = 'admin' then
+    return new;
+  end if;
+
+  if old.id = new.id
+     and old.machine_id = new.machine_id
+     and old.alarm_code = new.alarm_code
+     and old.description = new.description
+     and old.cause is not distinct from new.cause
+     and old.alarmed_at = new.alarmed_at
+  then
+    return new;
+  end if;
+
+  raise exception 'Technicians may only change the alarm status';
+end;
+$$;
+
+drop trigger if exists alarms_tech_status_only on public.alarms;
+create trigger alarms_tech_status_only
+  before update on public.alarms
+  for each row execute procedure public.prevent_tech_edit_alarm();
 
 -- MAINTENANCE RECORDS
 -- everyone signed in can view
+drop policy if exists "maint_select_authenticated" on public.maintenance_records;
 create policy "maint_select_authenticated" on public.maintenance_records
   for select to authenticated using (true);
 
 -- admins can insert, update, delete
+drop policy if exists "maint_admin_insert" on public.maintenance_records;
 create policy "maint_admin_insert" on public.maintenance_records
   for insert to authenticated
   with check (exists (
@@ -216,6 +261,7 @@ create policy "maint_admin_insert" on public.maintenance_records
     where p.id = auth.uid() and p.role = 'admin'
   ));
 
+drop policy if exists "maint_admin_update" on public.maintenance_records;
 create policy "maint_admin_update" on public.maintenance_records
   for update to authenticated
   using (exists (
@@ -223,6 +269,7 @@ create policy "maint_admin_update" on public.maintenance_records
     where p.id = auth.uid() and p.role = 'admin'
   ));
 
+drop policy if exists "maint_admin_delete" on public.maintenance_records;
 create policy "maint_admin_delete" on public.maintenance_records
   for delete to authenticated
   using (exists (
@@ -231,6 +278,7 @@ create policy "maint_admin_delete" on public.maintenance_records
   ));
 
 -- technicians can create new maintenance records and edit them
+drop policy if exists "maint_technician_insert" on public.maintenance_records;
 create policy "maint_technician_insert" on public.maintenance_records
   for insert to authenticated
   with check (exists (
@@ -238,6 +286,7 @@ create policy "maint_technician_insert" on public.maintenance_records
     where p.id = auth.uid() and p.role in ('admin', 'technician')
   ));
 
+drop policy if exists "maint_technician_update" on public.maintenance_records;
 create policy "maint_technician_update" on public.maintenance_records
   for update to authenticated
   using (exists (
