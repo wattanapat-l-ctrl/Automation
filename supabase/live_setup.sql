@@ -344,6 +344,11 @@ create trigger audit_maintenance
   after insert or update or delete on public.maintenance_records
   for each row execute function public.log_audit_action();
 
+drop trigger if exists audit_profiles on public.profiles;
+create trigger audit_profiles
+  after insert or update on public.profiles
+  for each row execute function public.log_audit_action();
+
 -- ============================================================
 -- SEED DATA (sample machines, alarms, maintenance records)
 -- ============================================================

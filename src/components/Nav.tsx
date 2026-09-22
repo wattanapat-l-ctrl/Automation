@@ -13,6 +13,8 @@ import {
   Settings,
   ShieldCheck,
   Sun,
+  UserCog,
+  UserRound,
   Wrench,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -24,6 +26,8 @@ const ICONS: Record<string, React.ReactNode> = {
   "/alarms": <BellRing className="h-4 w-4" />,
   "/maintenance": <Wrench className="h-4 w-4" />,
   "/audit": <ShieldCheck className="h-4 w-4" />,
+  "/users": <UserCog className="h-4 w-4" />,
+  "/account": <UserRound className="h-4 w-4" />,
 };
 
 const LINKS = [
@@ -175,6 +179,19 @@ export default function Nav({
               <span className="hidden md:inline">Audit Log</span>
             </Link>
           )}
+          {isAdmin && (
+            <Link
+              href="/users"
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
+                pathname.startsWith("/users")
+                  ? "bg-gradient-to-r from-sky-500/15 to-violet-500/15 text-sky-700 ring-1 ring-inset ring-sky-500/20 dark:text-white dark:ring-white/10"
+                  : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
+              }`}
+            >
+              {ICONS["/users"]}
+              <span className="hidden md:inline">Users</span>
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -199,7 +216,11 @@ export default function Nav({
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          <div className="hidden items-center gap-2.5 sm:flex">
+          <Link
+            href="/account"
+            className="hidden items-center gap-2.5 rounded-xl px-2 py-1 transition hover:bg-slate-100/80 sm:flex dark:hover:bg-slate-800/60"
+            title="My account"
+          >
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-violet-600 text-xs font-bold text-white shadow-md shadow-sky-500/25">
               {initials || "U"}
             </span>
@@ -209,7 +230,7 @@ export default function Nav({
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">{email}</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={handleLogout}
             title="Log out"
