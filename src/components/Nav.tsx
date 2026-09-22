@@ -49,15 +49,19 @@ export default function Nav({
   const { tick } = useRealtime(["alarms"]);
 
   const [openCount, setOpenCount] = useState(0);
-  const [theme, setTheme] = useState<"dark" | "light">(() =>
-    typeof document !== "undefined" &&
-    document.documentElement.classList.contains("dark")
-      ? "dark"
-      : "light"
-  );
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [toast, setToast] = useState<string | null>(null);
   const prevCount = useRef<number | null>(null);
   const toastTimer = useRef(0);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setTheme(
+        document.documentElement.classList.contains("dark") ? "dark" : "light"
+      );
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     let mounted = true;

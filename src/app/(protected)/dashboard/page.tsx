@@ -82,11 +82,11 @@ function machineStatusColor(status: string) {
   }
 }
 
-function useClock(intervalMs: number) {
-  const [now, setNow] = useState(new Date());
+function useClock(intervalMs: number): Date | null {
+  const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), intervalMs);
-    return () => clearInterval(t);
+    const t = window.setInterval(() => setNow(new Date()), intervalMs);
+    return () => window.clearInterval(t);
   }, [intervalMs]);
   return now;
 }
@@ -344,7 +344,7 @@ export default function DashboardPage() {
           </span>
           <span className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
           <span className="font-mono text-sm tabular-nums text-slate-700 dark:text-slate-200">
-            {liveClock.toLocaleTimeString("en-GB")}
+            {liveClock ? liveClock.toLocaleTimeString("en-GB") : "\u00A0"}
           </span>
           <span className="hidden font-mono text-xs text-slate-400 sm:inline">
             · updated{" "}
