@@ -4,12 +4,6 @@
 -- Run this script in: Supabase Dashboard -> SQL Editor
 -- ============================================================
 
--- 0. Helper: allow RLS reads/writes through anon/authenticated
-alter table public.profiles enable row level security;
-alter table public.machines enable row level security;
-alter table public.alarms enable row level security;
-alter table public.maintenance_records enable row level security;
-
 -- 1. PROFILES (extends auth.users, holds the role)
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
@@ -111,6 +105,12 @@ create trigger maintenance_set_updated_at
 -- ============================================================
 -- RLS POLICIES
 -- ============================================================
+
+-- Enable Row Level Security on all tables
+alter table public.profiles enable row level security;
+alter table public.machines enable row level security;
+alter table public.alarms enable row level security;
+alter table public.maintenance_records enable row level security;
 
 -- PROFILES
 -- users can read anyone's profile (needed to resolve roles/names)
