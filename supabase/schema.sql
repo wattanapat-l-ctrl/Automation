@@ -207,7 +207,7 @@ create policy "alarms_technician_update_status" on public.alarms
     select 1 from public.profiles p
     where p.id = auth.uid() and p.role in ('admin', 'technician')
   ))
-  with check (new.status in ('Open', 'In Progress', 'Closed'));
+  with check (status in ('Open', 'In Progress', 'Closed'));
 
 -- Hard rule: a technician who is NOT an admin may only edit the status column.
 create or replace function public.prevent_tech_edit_alarm()
