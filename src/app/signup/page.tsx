@@ -65,9 +65,9 @@ export default function SignupPage() {
 
   if (sent) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4">
-        <div className="w-full max-w-md">
-          <div className="rounded-2xl border border-emerald-500/30 bg-slate-900 p-8 text-center">
+      <div className="auth-bg flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-md animate-fade-up">
+          <div className="rounded-2xl border border-emerald-500/30 bg-slate-900/80 p-8 text-center shadow-2xl shadow-black/40 backdrop-blur-md">
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15">
               <MailCheck className="h-7 w-7 text-emerald-400" />
             </span>
@@ -78,7 +78,7 @@ export default function SignupPage() {
             </p>
             <Link
               href="/login"
-              className="mt-6 inline-flex items-center justify-center rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-400"
+              className="mt-6 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-sky-500/25 transition hover:from-sky-400 hover:to-blue-500"
             >
               Go to Sign in
             </Link>
@@ -89,11 +89,11 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4">
-      <div className="w-full max-w-md">
+    <div className="auth-bg flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-md animate-fade-up">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-500/20 ring-1 ring-sky-400/30">
-            <Activity className="h-7 w-7 text-sky-400" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-violet-600 shadow-lg shadow-sky-500/30">
+            <Activity className="h-7 w-7 text-white" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">Create an account</h1>
@@ -103,7 +103,7 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl shadow-black/40">
+        <div className="rounded-2xl border border-slate-800/80 bg-slate-900/80 p-6 shadow-2xl shadow-black/40 backdrop-blur-md">
           <form onSubmit={handleSignup} className="space-y-4">
             <div>
               <label htmlFor="fullName" className="mb-1.5 block text-sm font-medium text-slate-300">

@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, RefreshCcw, Search, Pencil, Trash2, Download } from "lucide-react";
+import { Plus, RefreshCcw, Search, Pencil, Trash2, Download, Wrench } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Modal } from "@/components/ui/Modal";
 import { Field, inputClass, btnPrimary, btnSecondary, btnDanger } from "@/components/ui/Field";
 import { useAuth } from "@/hooks/useAuth";
@@ -200,30 +201,31 @@ export default function MaintenancePage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Maintenance</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Maintenance records · {records.length} total
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={load} className={btnSecondary} title="Refresh">
-            <RefreshCcw className="h-4 w-4" />
-          </button>
-          <button onClick={handleExport} className={btnSecondary} title="Export CSV">
-            <Download className="h-4 w-4" />
-            CSV
-          </button>
-          {isAdmin && (
-            <button onClick={openCreate} className={btnPrimary}>
-              <Plus className="h-4 w-4" />
-              Add Record
+      <PageHeader
+        icon={<Wrench className="h-5 w-5" />}
+        iconClass="from-amber-500 to-orange-600"
+        title="Maintenance"
+        subtitle={`Maintenance records · ${records.length} total`}
+        actions={
+          <>
+            <button onClick={load} className={btnSecondary} title="Refresh">
+              <RefreshCcw className="h-4 w-4" />
             </button>
-          )}
-        </div>
-      </div>
+            <button onClick={handleExport} className={btnSecondary} title="Export CSV">
+              <Download className="h-4 w-4" />
+              CSV
+            </button>
+            {isAdmin && (
+              <button onClick={openCreate} className={btnPrimary}>
+                <Plus className="h-4 w-4" />
+                Add Record
+              </button>
+            )}
+          </>
+        }
+      />
 
+      <div className="rounded-2xl border border-slate-200/80 bg-white/60 p-3 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/50">
       <div className="flex flex-wrap items-end gap-3">
         <div className="relative w-full sm:w-72">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -249,8 +251,9 @@ export default function MaintenancePage() {
           <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={`${inputClass} w-auto`} />
         </div>
       </div>
+      </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>

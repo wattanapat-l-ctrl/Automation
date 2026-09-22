@@ -29,13 +29,15 @@ export default async function ProtectedLayout({ children }: LayoutProps<"/">) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen">
       <Nav
         name={profile?.full_name || user.email?.split("@")[0] || "User"}
         role={profile?.role || "technician"}
         email={user.email || ""}
       />
-      <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-6 animate-fade-in">
+        {children}
+      </main>
     </div>
   );
 }

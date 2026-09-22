@@ -10,9 +10,11 @@ import {
   CheckCircle,
   RotateCcw,
   Download,
+  BellRing,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Modal } from "@/components/ui/Modal";
 import { Field, inputClass, btnPrimary, btnSecondary, btnDanger } from "@/components/ui/Field";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,7 +43,7 @@ const EMPTY_FORM: FormState = {
 
 function LiveChip({ live }: { live: boolean }) {
   return (
-    <span className="flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+    <span className="flex items-center gap-1.5 rounded-full border border-slate-300/80 bg-white/70 px-2.5 py-1 text-xs font-semibold text-slate-600 shadow-sm backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-300">
       <span className="relative flex h-2 w-2">
         <span
           className={`absolute inline-flex h-full w-full rounded-full bg-emerald-400 ${live ? "animate-ping opacity-60" : "opacity-20"}`}
@@ -238,36 +240,36 @@ export default function AlarmsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Alarms</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Alarm records · {alarms.length} total
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <LiveChip live={live} />
-          <button onClick={load} className={btnSecondary} title="Refresh">
-            <RefreshCcw className="h-4 w-4" />
-          </button>
-          <button onClick={handleExport} className={btnSecondary} title="Export CSV">
-            <Download className="h-4 w-4" />
-            CSV
-          </button>
-          {isAdmin && (
-            <button onClick={openCreate} className={btnPrimary}>
-              <Plus className="h-4 w-4" />
-              Add Alarm
+      <PageHeader
+        icon={<BellRing className="h-5 w-5" />}
+        iconClass="from-red-500 to-rose-600"
+        title="Alarms"
+        subtitle={`Alarm records · ${alarms.length} total`}
+        actions={
+          <>
+            <LiveChip live={live} />
+            <button onClick={load} className={btnSecondary} title="Refresh">
+              <RefreshCcw className="h-4 w-4" />
             </button>
-          )}
-        </div>
-      </div>
+            <button onClick={handleExport} className={btnSecondary} title="Export CSV">
+              <Download className="h-4 w-4" />
+              CSV
+            </button>
+            {isAdmin && (
+              <button onClick={openCreate} className={btnPrimary}>
+                <Plus className="h-4 w-4" />
+                Add Alarm
+              </button>
+            )}
+          </>
+        }
+      />
 
       <div className="grid grid-cols-3 gap-3">
         {(["Open", "In Progress", "Closed"] as const).map((s) => (
           <div
             key={s}
-            className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+            className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70"
           >
             <div className="flex items-center justify-between">
               <Badge value={s} />
@@ -292,6 +294,7 @@ export default function AlarmsPage() {
         ))}
       </div>
 
+      <div className="rounded-2xl border border-slate-200/80 bg-white/60 p-3 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/50">
       <div className="flex flex-wrap items-end gap-3">
         <div className="relative w-full sm:w-72">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -323,8 +326,9 @@ export default function AlarmsPage() {
           <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className={`${inputClass} w-auto`} />
         </div>
       </div>
+      </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>

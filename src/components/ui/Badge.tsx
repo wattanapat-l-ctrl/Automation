@@ -14,15 +14,34 @@ const COLORS: Record<string, string> = {
   viewer: "bg-emerald-500/15 text-emerald-600 ring-emerald-500/30",
 };
 
+const DOT: Record<string, string> = {
+  Running: "bg-emerald-500",
+  Stop: "bg-slate-400",
+  Alarm: "bg-red-500",
+  Maintenance: "bg-amber-500",
+  Open: "bg-red-500",
+  "In Progress": "bg-amber-500",
+  Closed: "bg-emerald-500",
+  Pending: "bg-slate-400",
+  Completed: "bg-emerald-500",
+  "Waiting Part": "bg-orange-500",
+  admin: "bg-violet-500",
+  technician: "bg-sky-500",
+  viewer: "bg-emerald-500",
+};
+
 const DEFAULT_COLOR = "bg-slate-500/15 text-slate-600 ring-slate-500/30";
+const DEFAULT_DOT = "bg-slate-400";
 
 export function Badge({ value }: { value: string }) {
+  const dot = DOT[value] ?? DEFAULT_DOT;
   return (
     <span
-      className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${
         COLORS[value] ?? DEFAULT_COLOR
       }`}
     >
+      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
       {value}
     </span>
   );

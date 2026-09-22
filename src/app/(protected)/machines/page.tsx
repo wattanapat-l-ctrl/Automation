@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, RefreshCcw, Search, Pencil, Trash2, Download, History } from "lucide-react";
+import { Plus, RefreshCcw, Search, Pencil, Trash2, Download, History, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Modal } from "@/components/ui/Modal";
 import { Field, inputClass, btnPrimary, btnSecondary, btnDanger } from "@/components/ui/Field";
 import { useAuth } from "@/hooks/useAuth";
@@ -197,30 +198,31 @@ export default function MachinesPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Machines</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Manage machine master data · {machines.length} machines
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={load} className={btnSecondary} title="Refresh">
-            <RefreshCcw className="h-4 w-4" />
-          </button>
-          <button onClick={handleExport} className={btnSecondary} title="Export CSV">
-            <Download className="h-4 w-4" />
-            CSV
-          </button>
-          {isAdmin && (
-            <button onClick={openCreate} className={btnPrimary}>
-              <Plus className="h-4 w-4" />
-              Add Machine
+      <PageHeader
+        icon={<Settings className="h-5 w-5" />}
+        iconClass="from-sky-500 to-blue-600"
+        title="Machines"
+        subtitle={`Manage machine master data · ${machines.length} machines`}
+        actions={
+          <>
+            <button onClick={load} className={btnSecondary} title="Refresh">
+              <RefreshCcw className="h-4 w-4" />
             </button>
-          )}
-        </div>
-      </div>
+            <button onClick={handleExport} className={btnSecondary} title="Export CSV">
+              <Download className="h-4 w-4" />
+              CSV
+            </button>
+            {isAdmin && (
+              <button onClick={openCreate} className={btnPrimary}>
+                <Plus className="h-4 w-4" />
+                Add Machine
+              </button>
+            )}
+          </>
+        }
+      />
 
+      <div className="rounded-2xl border border-slate-200/80 bg-white/60 p-3 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/50">
       <div className="flex flex-wrap gap-3">
         <div className="relative w-full sm:w-72">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -244,8 +246,9 @@ export default function MachinesPage() {
           ))}
         </select>
       </div>
+      </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>

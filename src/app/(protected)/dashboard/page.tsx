@@ -41,24 +41,26 @@ function StatCard({
   label,
   value,
   icon,
-  accent,
+  gradient,
+  glow,
 }: {
   label: string;
   value: number;
   icon: React.ReactNode;
-  accent: string;
+  gradient: string;
+  glow: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex items-center justify-between">
+    <div className="group rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-950/5 dark:border-slate-800 dark:bg-slate-900/70 dark:hover:shadow-black/30">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
-          <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-white">
+          <p className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             {value}
           </p>
         </div>
         <span
-          className={`flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-inset ${accent}`}
+          className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-lg ${glow} transition group-hover:scale-105`}
         >
           {icon}
         </span>
@@ -79,6 +81,36 @@ function machineStatusColor(status: string) {
       return "bg-amber-500/15 text-amber-600 ring-amber-500/30";
     default:
       return "bg-slate-500/15 text-slate-600 ring-slate-500/30";
+  }
+}
+
+function statusDot(status: string) {
+  switch (status) {
+    case "Running":
+      return "bg-emerald-500";
+    case "Stop":
+      return "bg-slate-400";
+    case "Alarm":
+      return "bg-red-500";
+    case "Maintenance":
+      return "bg-amber-500";
+    default:
+      return "bg-slate-400";
+  }
+}
+
+function statusBar(status: string) {
+  switch (status) {
+    case "Running":
+      return "bg-emerald-500";
+    case "Stop":
+      return "bg-slate-400";
+    case "Alarm":
+      return "bg-red-500";
+    case "Maintenance":
+      return "bg-amber-500";
+    default:
+      return "bg-slate-400";
   }
 }
 
@@ -332,7 +364,7 @@ export default function DashboardPage() {
             Overview of machines, alarms and maintenance activities.
           </p>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white/80 px-3.5 py-2.5 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
           <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
             <span
               className={`relative flex h-2.5 w-2.5 ${live ? "" : "opacity-60"}`}
@@ -360,10 +392,12 @@ export default function DashboardPage() {
       </div>
 
       {isAdmin && (
-        <div className="rounded-2xl border border-sky-500/25 bg-sky-500/5 p-4 dark:border-sky-400/20">
+        <div className="rounded-2xl border border-sky-500/25 bg-gradient-to-r from-sky-500/10 via-transparent to-violet-500/10 p-4 backdrop-blur-sm dark:border-sky-400/20">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm font-semibold text-sky-700 dark:text-sky-300">
-              <Sparkles className="h-4 w-4" />
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-violet-600 text-white shadow-md shadow-sky-500/30">
+                <Sparkles className="h-4 w-4" />
+              </span>
               Simulation Lab
               <span className="hidden text-xs font-normal text-slate-500 dark:text-slate-400 sm:inline">
                 · Generate demo data or stream live alarms for demonstration
@@ -439,26 +473,30 @@ export default function DashboardPage() {
         <StatCard
           label="Total Machines"
           value={machines.length}
-          icon={<Factory className="h-5 w-5 text-sky-500" />}
-          accent="bg-sky-500/15 text-sky-500 ring-sky-500/30"
+          icon={<Factory className="h-5 w-5" />}
+          gradient="from-sky-500 to-blue-600"
+          glow="shadow-sky-500/30"
         />
         <StatCard
           label="Alarms Today"
           value={totalAlarms}
-          icon={<BellRing className="h-5 w-5 text-red-500" />}
-          accent="bg-red-500/15 text-red-500 ring-red-500/30"
+          icon={<BellRing className="h-5 w-5" />}
+          gradient="from-red-500 to-rose-600"
+          glow="shadow-red-500/30"
         />
         <StatCard
           label="Maintenance Jobs"
           value={totalMaint}
-          icon={<Wrench className="h-5 w-5 text-amber-500" />}
-          accent="bg-amber-500/15 text-amber-500 ring-amber-500/30"
+          icon={<Wrench className="h-5 w-5" />}
+          gradient="from-amber-500 to-orange-600"
+          glow="shadow-amber-500/30"
         />
         <StatCard
           label="Maintenance This Month"
           value={maintThisMonth}
-          icon={<Activity className="h-5 w-5 text-emerald-500" />}
-          accent="bg-emerald-500/15 text-emerald-500 ring-emerald-500/30"
+          icon={<Activity className="h-5 w-5" />}
+          gradient="from-emerald-500 to-teal-600"
+          glow="shadow-emerald-500/30"
         />
       </div>
 
@@ -466,20 +504,35 @@ export default function DashboardPage() {
         {Object.entries(statusCounts).map(([status, count]) => (
           <div
             key={status}
-            className={`rounded-2xl border border-slate-200 p-4 dark:border-slate-800 ${machineStatusColor(status)}`}
+            className={`rounded-2xl border border-slate-200/80 p-4 shadow-sm backdrop-blur-sm dark:border-slate-800 ${machineStatusColor(status)}`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">{status}</span>
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <span className={`h-2 w-2 rounded-full ${statusDot(status)}`} />
+                {status}
+              </span>
               <span className="text-xl font-bold">{count}</span>
+            </div>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-950/10 dark:bg-white/10">
+              <div
+                className={`h-full rounded-full ${statusBar(status)}`}
+                style={{
+                  width: `${
+                    machines.length ? (count / machines.length) * 100 : 0
+                  }%`,
+                }}
+              />
             </div>
           </div>
         ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
+        <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70 lg:col-span-2">
           <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
-            <Activity className="h-4 w-4 text-sky-500" />
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-md shadow-red-500/30">
+              <Activity className="h-4 w-4" />
+            </span>
             Alarm Activity · Last 14 Days
           </h2>
           <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
@@ -510,7 +563,7 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
           <h2 className="mb-4 text-base font-semibold text-slate-900 dark:text-white">
             Recent Activity
           </h2>
@@ -523,13 +576,13 @@ export default function DashboardPage() {
               {activity.map((item, i) => (
                 <li
                   key={i}
-                  className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-950/50 p-3"
+                  className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-950/40"
                 >
                   <span
                     className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
                       item.kind === "alarm"
-                        ? "bg-red-500/15 text-red-400"
-                        : "bg-amber-500/15 text-amber-400"
+                        ? "bg-red-500/15 text-red-500 dark:text-red-400"
+                        : "bg-amber-500/15 text-amber-500 dark:text-amber-400"
                     }`}
                   >
                     {item.kind === "alarm" ? (
@@ -539,7 +592,7 @@ export default function DashboardPage() {
                     )}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-medium text-white">
+                    <p className="truncate text-xs font-medium text-slate-900 dark:text-white">
                       [{item.machine}] {item.title}
                     </p>
                     <p className="flex items-center gap-2 text-[11px] text-slate-400">
@@ -560,8 +613,11 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
-          <h2 className="mb-4 text-base font-semibold text-slate-900 dark:text-white">
+        <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70 lg:col-span-2">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/30">
+              <Activity className="h-4 w-4" />
+            </span>
             Machine Status Overview
           </h2>
           <ResponsiveContainer width="100%" height={220}>
@@ -576,9 +632,11 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
-            <AlertTriangle className="h-4 w-4 text-red-500" />
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-md shadow-red-500/30">
+              <AlertTriangle className="h-4 w-4" />
+            </span>
             Open Alarms
           </h2>
           {openAlarms.length === 0 ? (
@@ -595,10 +653,10 @@ export default function DashboardPage() {
                 return (
                   <li
                     key={alarm.id}
-                    className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/50 p-3"
+                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-950/40"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-white">
+                      <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
                         [{machine?.machine_id ?? "?"}]{" "}
                         {machine?.machine_name ?? "Unknown"}
                       </p>

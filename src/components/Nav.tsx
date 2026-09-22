@@ -106,18 +106,25 @@ export default function Nav({
     }
   }
 
+  const initials = (name || email || "U")
+    .split(/[\s@]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s[0]?.toUpperCase() ?? "")
+    .join("");
+
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+    <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/75 shadow-sm shadow-slate-950/5 backdrop-blur-xl dark:border-slate-800/70 dark:bg-slate-900/75 dark:shadow-black/20">
       {toast && (
-        <div className="absolute left-1/2 top-full z-30 -translate-x-1/2 rounded-xl border border-red-500/30 bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-xl">
+        <div className="absolute left-1/2 top-full z-30 -translate-x-1/2 rounded-xl border border-red-500/30 bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-xl animate-fade-up">
           {toast}
         </div>
       )}
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-2.5">
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/20 ring-1 ring-sky-400/30">
-              <Activity className="h-4 w-4 text-sky-500" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-violet-600 text-white shadow-md shadow-sky-500/30">
+              <Activity className="h-4 w-4" />
             </span>
             <span className="hidden text-sm font-semibold text-slate-900 sm:block dark:text-white">
               Alarm &amp; Maintenance
@@ -144,10 +151,10 @@ export default function Nav({
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
                   active
-                    ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
+                    ? "bg-gradient-to-r from-sky-500/15 to-violet-500/15 text-sky-700 ring-1 ring-inset ring-sky-500/20 dark:text-white dark:ring-white/10"
+                    : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
                 }`}
               >
                 {ICONS[link.href]}
@@ -158,10 +165,10 @@ export default function Nav({
           {isAdmin && (
             <Link
               href="/audit"
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
                 pathname.startsWith("/audit")
-                  ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
-                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
+                  ? "bg-gradient-to-r from-sky-500/15 to-violet-500/15 text-sky-700 ring-1 ring-inset ring-sky-500/20 dark:text-white dark:ring-white/10"
+                  : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
               }`}
             >
               {ICONS["/audit"]}
@@ -173,7 +180,7 @@ export default function Nav({
         <div className="flex items-center gap-2">
           <Link
             href="/alarms"
-            className="relative inline-flex items-center rounded-lg border border-slate-300 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="relative inline-flex items-center rounded-xl border border-slate-300/80 bg-white/60 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
             title="Open alarms notification"
           >
             <Bell className="h-4 w-4" />
@@ -186,22 +193,27 @@ export default function Nav({
 
           <button
             onClick={toggleTheme}
-            className="inline-flex items-center rounded-lg border border-slate-300 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="inline-flex items-center rounded-xl border border-slate-300/80 bg-white/60 p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
             title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          <div className="hidden text-right sm:block">
-            <p className="text-sm font-medium text-slate-900 dark:text-white">
-              {name || "User"}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{email}</p>
+          <div className="hidden items-center gap-2.5 sm:flex">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-violet-600 text-xs font-bold text-white shadow-md shadow-sky-500/25">
+              {initials || "U"}
+            </span>
+            <div className="text-right">
+              <p className="text-sm font-medium leading-tight text-slate-900 dark:text-white">
+                {name || "User"}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{email}</p>
+            </div>
           </div>
           <button
             onClick={handleLogout}
             title="Log out"
-            className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-red-500/40 hover:text-red-500 dark:border-slate-700 dark:text-slate-300 dark:hover:text-red-300"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-300/80 bg-white/60 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-red-500/40 hover:bg-red-50 hover:text-red-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-red-950/40 dark:hover:text-red-300"
           >
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">Logout</span>

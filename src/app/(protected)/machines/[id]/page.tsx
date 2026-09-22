@@ -92,31 +92,39 @@ export default function MachineHistoryPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
           <div className="flex items-center justify-between">
             <p className="text-sm text-slate-500 dark:text-slate-400">Total Alarms</p>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-md shadow-red-500/30">
+              <AlertTriangle className="h-4 w-4" />
+            </span>
           </div>
-          <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-white">{alarms.length}</p>
+          <p className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">{alarms.length}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
           <div className="flex items-center justify-between">
             <p className="text-sm text-slate-500 dark:text-slate-400">Open Alarms</p>
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/30">
+              <AlertTriangle className="h-4 w-4" />
+            </span>
           </div>
-          <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-white">{openAlarms}</p>
+          <p className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">{openAlarms}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
           <div className="flex items-center justify-between">
             <p className="text-sm text-slate-500 dark:text-slate-400">Maintenance Jobs</p>
-            <Wrench className="h-4 w-4 text-amber-500" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/30">
+              <Wrench className="h-4 w-4" />
+            </span>
           </div>
-          <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-white">{records.length}</p>
+          <p className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">{records.length}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
           <div className="flex items-center justify-between">
             <p className="text-sm text-slate-500 dark:text-slate-400">Last Alarm</p>
-            <Factory className="h-4 w-4 text-sky-500" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-md shadow-violet-500/30">
+              <Factory className="h-4 w-4" />
+            </span>
           </div>
           <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
             {lastAlarm
@@ -131,9 +139,11 @@ export default function MachineHistoryPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
         <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
-          <AlertTriangle className="h-4 w-4 text-red-500" />
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-md shadow-red-500/30">
+            <AlertTriangle className="h-4 w-4" />
+          </span>
           Alarm History
         </h2>
         <div className="overflow-x-auto">
@@ -182,9 +192,11 @@ export default function MachineHistoryPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
         <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
-          <Wrench className="h-4 w-4 text-amber-500" />
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/30">
+            <Wrench className="h-4 w-4" />
+          </span>
           Maintenance History
         </h2>
         <div className="overflow-x-auto">

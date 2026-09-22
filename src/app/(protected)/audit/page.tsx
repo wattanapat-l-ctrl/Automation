@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { RefreshCcw, ShieldAlert, ShieldCheck, Trash2, Eye } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { inputClass, btnSecondary } from "@/components/ui/Field";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtime } from "@/hooks/useRealtime";
 import { exportCsv } from "@/lib/csv";
@@ -106,29 +107,26 @@ export default function AuditPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">
-            <ShieldCheck className="h-6 w-6 text-violet-500" />
-            Audit Log
-          </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Every insert, update and delete across the system · {entries.length} entries
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => load()} className={btnSecondary} title="Refresh">
-            <RefreshCcw className="h-4 w-4" />
-          </button>
-          <button
-            onClick={handleExport}
-            className={`${btnSecondary} inline-flex items-center gap-2`}
-          >
-            <DownloadIcon className="h-4 w-4" />
-            CSV
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        icon={<ShieldCheck className="h-5 w-5" />}
+        iconClass="from-violet-500 to-fuchsia-600"
+        title="Audit Log"
+        subtitle={`Every insert, update and delete across the system · ${entries.length} entries`}
+        actions={
+          <>
+            <button onClick={() => load()} className={btnSecondary} title="Refresh">
+              <RefreshCcw className="h-4 w-4" />
+            </button>
+            <button
+              onClick={handleExport}
+              className={`${btnSecondary} inline-flex items-center gap-2`}
+            >
+              <DownloadIcon className="h-4 w-4" />
+              CSV
+            </button>
+          </>
+        }
+      />
 
       {setupNeeded ? (
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6">
@@ -151,6 +149,7 @@ export default function AuditPage() {
         </div>
       ) : (
         <>
+          <div className="rounded-2xl border border-slate-200/80 bg-white/60 p-3 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/50">
           <div className="flex flex-wrap gap-3">
             <select
               value={tableFilter}
@@ -173,8 +172,9 @@ export default function AuditPage() {
               <option value="DELETE">DELETE</option>
             </select>
           </div>
+        </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
