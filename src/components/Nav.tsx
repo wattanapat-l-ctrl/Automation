@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Sun,
   UserCog,
-  UserRound,
   Wrench,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -27,7 +26,6 @@ const ICONS: Record<string, React.ReactNode> = {
   "/maintenance": <Wrench className="h-4 w-4" />,
   "/audit": <ShieldCheck className="h-4 w-4" />,
   "/users": <UserCog className="h-4 w-4" />,
-  "/account": <UserRound className="h-4 w-4" />,
 };
 
 const LINKS = [
@@ -197,7 +195,7 @@ export default function Nav({
 
       <nav className="border-t border-slate-200/70 dark:border-slate-800/70">
         <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-2">
-          {[...LINKS, ...(isAdmin ? [{ href: "/audit", label: "Audit Log" }, { href: "/users", label: "Users" }] : []), { href: "/account", label: "Account" }].map((link) => {
+          {[...LINKS, ...(isAdmin ? [{ href: "/audit", label: "Audit Log" }, { href: "/users", label: "Users" }] : [])].map((link) => {
             const active =
               pathname === link.href || pathname.startsWith(link.href + "/");
             return (
